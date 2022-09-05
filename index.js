@@ -111,6 +111,19 @@ async function submitForm(event) {
   // Map and sort our flight data to get the values we want.
   // const flightDataProcessed = flights.map((_, i) => [flights[i].depart[0][0][0], i]).sort(function (a, b) { return a[0] - b[0] });
 
+  // To do your multi-day search:
+  /*
+   * const fromToSetMultipleDays = [];
+   * for(const i = 0; i < HOWEVER MANY DAYS YOU WANT; i++) {
+   *   fromToSet.forEach(fromToPair => fromToSetMultipleDays.push({ ...fromToPair, departureTime: moment(time.value).add(i, "d").format("YYYY-MM-DD") }));
+   * }
+   *
+   * And then below replace:
+   * `fromToSet.map(({ from, to }) => getFlightData(from, to, departureTime))`
+   *  with
+   * `fromToSet.map(({ from, to, departureTime }) => getFlightData(from, to, departureTime))`
+   */
+
   // Inlined, simplified version of the above.
   const flightData = await Promise.all(
     fromToSet.map(({ from, to }) => getFlightData(from, to, departureTime))
