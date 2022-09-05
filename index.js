@@ -1,4 +1,3 @@
-
 // This is a bad pattern, but it's easy.
 const fromTo = `
 <h2>
@@ -24,13 +23,39 @@ function addBoxes() {
 }
 
 async function getFlightData(from, to, departure) {
-  const flightResponse = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://skiplagged.com/api/search.php?from=${from}&to=${to}&depart=${departure}`)}`)
+  const flightResponse = await fetch(
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(
+      `https://skiplagged.com/api/search.php?from=${from}&to=${to}&depart=${departure}`
+    )}`
+  );
   return flightResponse.json();
+}
+
+// Encapsulating the discord messaging
+// flightData: {
+//    flightCost: <number>
+//    from: AITI Code
+//    to: AITI Code
+// }
+// departureTime: The departure time
+async function postToDiscord(flightData, departureTime) {
+  console.log(flightData, departureTime);
+  const discordChannelUrl = `https://discord.com/api/webhooks/1000930577182101506/fF_e4nrjDmGZ6X8ZuKHhdnJFPIL2rYBVAUL6IcHbMXClKOLIhESmGEeCATeoKhqUnrb8`;
+  fetch(discordChannelUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      // TODO: What you want to send here.
+      content: ``,
+    }),
+  });
 }
 
 // We don't want hitting search multiple times to call this multiple times
 // so we hold onto our timeout and clear it if the submit is called again.
 let timeoutRef;
+// We're not utilizing the form data now. It's just re-running against the DOM.
+// If you change an input field it'll affect this too. Arguably bad design but whatever.
 async function submitForm(event) {
   // Prevent form causing a postback.
   if (event) {
@@ -44,9 +69,12 @@ async function submitForm(event) {
   // fromToDomElements is a 'NodeList', which isn't iterable the way we want. We can't use 'map'
   const fromToElementsAsAnArray = Array.from(fromToDomElements);
   // Map over our array of from/to div's
-  const fromToSet = fromToElementsAsAnArray.map(fromToDiv => {
+  const fromToSet = fromToElementsAsAnArray.map((fromToDiv) => {
     // Since we're working with DOM elements, we need to query for the from input and the to input, then get their value.
-    return { from: fromToDiv.querySelector(".from").value, to: fromToDiv.querySelector(".to").value }
+    return {
+      from: fromToDiv.querySelector(".from").value,
+      to: fromToDiv.querySelector(".to").value,
+    };
   });
 
   // This is another way to do the above code!
@@ -61,12 +89,12 @@ async function submitForm(event) {
   console.log(fromToSet);
 
   /*
-  * We now have a set of values we can work with. It looks like:
-  * [
-  *   { from: some AITI code, to: some other AITI code },
-  *   { from: some other AITI code, to: some other other AITI code },
-  * ]
-  */
+   * We now have a set of values we can work with. It looks like:
+   * [
+   *   { from: some AITI code, to: some other AITI code },
+   *   { from: some other AITI code, to: some other other AITI code },
+   * ]
+   */
 
   // Find the DOM input element with the ID "time", get its value, and format it for our uses.
   const departureTime = moment(time.value).format("YYYY-MM-DD");
@@ -84,14 +112,29 @@ async function submitForm(event) {
   // const flightDataProcessed = flights.map((_, i) => [flights[i].depart[0][0][0], i]).sort(function (a, b) { return a[0] - b[0] });
 
   // Inlined, simplified version of the above.
-  const flightData = await Promise.all(fromToSet.map(({ from, to }) => getFlightData(from, to, departureTime))).then(
-    flights => flights.map((_, i) => [flights[i].depart[0][0][0], i]).sort(function (a, b) { return a[0] - b[0] })
+  const flightData = await Promise.all(
+    fromToSet.map(({ from, to }) => getFlightData(from, to, departureTime))
+  ).then((flights) =>
+    flights
+      .map((flight, i) => {
+        return {
+          flightCost: flight.depart[0][0][0],
+          // Google object spread operator
+          ...fromToSet[i],
+          // The above line does the same as the two below lines
+          // to: fromToSet[i].to,
+          // from: fromToSet[i].from,
+        };
+      })
+      .sort((a, b) => a.flightCost - b.flightCost)
   );
   // Log out our flight data
   console.log(flightData);
 
+  await postToDiscord(flightData, departureTime);
+
   // Store our timeout so if you press search again it doesn't start two timers.
-  timeoutRef = setTimeout(() => submitForm(event), 8000);
+  timeoutRef = setTimeout(submitForm, 8000);
 }
 
 flightSearch.addEventListener("submit", submitForm);
