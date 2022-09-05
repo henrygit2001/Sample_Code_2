@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
 </head>
+
 <body>
     <form id="flightSearch">
-    <div id="airports">
-    <h2>
-        <label for="from">From:</label>
-        <input name="from" type="text" placeholder="Enter AITI Code" />
-    </h2>
-    <h2>
-        <label for="to">To:</label>
-        <input name="to" type="text" placeholder="Enter AITI Code" />
-    </h2>
-</div>
-    <button id="button">Add To-From</button>
-</form>
-<script src= index.js></script>
-</body>
-</html>
+        <button id="addToFrom" type="button">Add To-From</button>
+        <button type="submit">Search</button>
+        <h2>
+            <label for="time">Time of Departure:</label>
+            <input id="time" type="date">
+            </input>
+        </h2>
+        <div id="airports"></div>
+    </form>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>
